@@ -23,7 +23,7 @@ pip install .
 
 ## Usage
 
-See the `examples/` directory for a usage example. The main entry point is the `pyscsopt` package.
+See the [`examples/`](https://github.com/adeyemiadeoye/pySCSOpt/tree/main/examples) directory for a usage example. The main entry point is the `pyscsopt` package.
 
 For more information on how to set up problems (especially choosing regularizers), see Julia's [SelfConcordantSmoothOptimization.jl](https://github.com/adeyemiadeoye/SelfConcordantSmoothOptimization.jl).
 
