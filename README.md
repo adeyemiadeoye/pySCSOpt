@@ -15,10 +15,10 @@ This package is a Python port of most parts of the Julia package [SelfConcordant
 
 ## Installation
 
-Clone the repository and install with pip:
+Install with pip:
 
 ```sh
-pip install .
+pip install pyscsopt
 ```
 
 ## Usage
