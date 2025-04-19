@@ -59,27 +59,39 @@ def optim_loop(method, model, reg_name, hmu, opt):
     objs, fvals, rel_errors, objrels, times = [], [], [], [], []
     grad_norms = []
     t0 = datetime.now()
+    # Print optimization header
+    if opt.verbose > 0:
+        print("\n========== Optimization Started ==========")
+        print(f"Method:      {getattr(method, 'name', str(method))}")
+        print(f"Model:       {getattr(model, 'name', type(model).__name__)}")
+        print(f"Regularizer: {reg_name}")
+        print(f"Max Epochs:  {opt.max_epoch}")
+        print(f"x_tol:       {opt.x_tol:.1e} | f_tol: {opt.f_tol:.1e} | Patience: {opt.patience}")
+        print(f"Start Time:  {t0.strftime('%Y-%m-%d %H:%M:%S')}")
+        print("-"*50)
+        header_fmt = "{:<5s} | {:>12s} | {:>12s} | {:>10s} | {:>10s} | {:>12s}"
+        row_fmt =    "{:<5d} | {:>12.4e} | {:>12.4e} | {:>10.4e} | {:>10.2e} | {:>12.2e}"
+        print(header_fmt.format('Epoch', 'obj', 'fval', 'rel_err', 'objrel', 'grad_norm'))
+        print("-"*77)
     # initialize the method with the starting point x (important for BFGS/Hessian-based methods)
     if method is not None and hasattr(method, 'init'):
         method.init(x)
+    if is_generic:
+        f = lambda x: model.f(x)
+    else:
+        f = lambda x: model.f(model.A, model.y, x)
     n = x.shape[0]
     patience_counter = 0
     best_fval = None
+    converged_reason = None
     for epoch in range(opt.max_epoch):
-        if is_generic:
-            fval = model.f(x)
-            obj = fval + model.get_reg(x, reg_name)
-        else:
-            fval = model.f(model.A, model.y, x)
-            obj = fval + model.get_reg(x, reg_name)
+        fval = f(x)
+        obj = fval + model.get_reg(x, reg_name)
         fvals.append(fval)
         objs.append(obj)
-        if hasattr(model, 'x_star'):
-            rel_error = np.linalg.norm(x - model.x_star) / max(np.linalg.norm(model.x_star), 1)
-        else:
-            rel_error = np.linalg.norm(x - model.x0) / max(np.linalg.norm(model.x0), 1)
+        rel_error = np.linalg.norm(x - x_prev)/max(np.linalg.norm(x_prev), 1)
         rel_errors.append(rel_error)
-        objrel = abs(obj - model.obj_star) / max(abs(model.obj_star), 1) if hasattr(model, 'obj_star') else 0.0
+        objrel = abs(obj - (f(x_prev) + model.get_reg(x_prev, reg_name)))/max(abs((f(x_prev) + model.get_reg(x_prev, reg_name))), 1)
         objrels.append(objrel)
         times.append((datetime.now() - t0).total_seconds())
         if reg_name == "gl" and hasattr(model, "P") and hasattr(model.P, "Cmat"):
@@ -92,6 +104,7 @@ def optim_loop(method, model, reg_name, hmu, opt):
         else:
             patience_counter += 1
         if patience_counter >= opt.patience:
+            converged_reason = f"Patience level {opt.patience} reached at epoch {epoch+1}, stopping early."
             if opt.verbose > 0:
                 print(f"Patience level {opt.patience} reached at epoch {epoch+1}, stopping early.")
             break
@@ -102,16 +115,43 @@ def optim_loop(method, model, reg_name, hmu, opt):
                 x_new, grad_norm = iter_step(method, model, reg_name, hmu, model.A, x, x_prev, model.y, Cmat, epoch)
             grad_norms.append(grad_norm)
             if opt.verbose > 0:
-                print(f"Epoch {epoch+1:4d} | obj: {obj:.6e} | fval: {fval:.6e} | rel_error: {rel_error:.2e} | objrel: {objrel:.2e} | grad_norm: {grad_norm:.2e}")
+                # Only print titles if not about to break
+                will_break = (
+                    np.linalg.norm(x_new - x) < opt.x_tol*max(np.linalg.norm(x), 1)
+                    or grad_norm < opt.x_tol * max(1, np.linalg.norm(x))
+                )
+                if (epoch+1) % 7 == 1 and epoch != 0 and not will_break:
+                    print("-"*77)
+                    print(header_fmt.format('Epoch', 'obj', 'fval', 'rel_err', 'objrel', 'grad_norm'))
+                    print("-"*77)
+                print(row_fmt.format(epoch+1, obj, fval, rel_error, objrel, grad_norm))
             if (
                 np.linalg.norm(x_new - x) < opt.x_tol*max(np.linalg.norm(x), 1)
                 or grad_norm < opt.x_tol * max(1, np.linalg.norm(x))
                 ):
+                if np.linalg.norm(x_new - x) < opt.x_tol*max(np.linalg.norm(x), 1):
+                    converged_reason = f"Converged: ||x_new - x|| < x_tol at epoch {epoch+1}."
+                elif grad_norm < opt.x_tol * max(1, np.linalg.norm(x)):
+                    converged_reason = f"Converged: grad_norm < x_tol at epoch {epoch+1}."
                 break
             x_prev = x.copy()
             x = x_new.copy()
             epochs += 1
         else:
             # grad_norms.append(np.nan)
+            converged_reason = f"Stopped at epoch {epoch+1} due to patience policy."
             break
+    t1 = datetime.now()
+    if opt.verbose > 0:
+        print("-"*77)
+        print(f"Optimization finished at {t1.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Total epochs: {epochs}")
+        print(f"Elapsed time: {(t1-t0).total_seconds():.2f} seconds")
+        print(f"Best fval:    {np.min(fvals):.6e}")
+        print(f"Best obj:     {np.min(objs):.6e}")
+        print(f"Final rel_error: {rel_errors[-1]:.2e}")
+        print(f"Final objrel:   {objrels[-1]:.2e}")
+        if converged_reason:
+            print(f"Convergence reason: {converged_reason}")
+        print("========== Optimization Complete =========\n")
     return Solution(x, objs, fvals, None, rel_errors, objrels, grad_norms, times, epochs, model, grad_norms=grad_norms)

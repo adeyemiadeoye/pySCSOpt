@@ -1,4 +1,4 @@
-# pySCSOpt: Self-concordant smooth optimization in Python
+# pySCSOpt: Self-Concordant Smooth Optimization in Python
 
 <p align="center">
     <a style="text-decoration:none !important;" href="https://arxiv.org/abs/2309.01781" alt="arXiv" target="_blank"><img src="https://img.shields.io/badge/paper-arXiv-red" /></a>

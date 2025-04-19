@@ -140,6 +140,7 @@ def get_P_func(n, G, ind):
 def make_group_lasso_problem(m, n, grpsize=5, p_active=0.1, noise_std=0.1, seed=None, group_weights=1.0, use_const_grpsize=True, corr=0.5):
     """
     Utility to generate a synthetic group lasso regression problem.
+    According to the paper "GAP Safe Screening Rules for Sparse-Group Lasso". See https://github.com/EugeneNdiaye/GAPSAFE_SGL
     Args:
         m: number of samples
         n: number of features
@@ -156,7 +157,7 @@ def make_group_lasso_problem(m, n, grpsize=5, p_active=0.1, noise_std=0.1, seed=
     rng = np.random.default_rng(seed)
     # Group structure
     if use_const_grpsize:
-        n_groups = n // grpsize
+        n_groups = n//grpsize
         groups = [range(i*grpsize, min((i+1)*grpsize, n)) for i in range(n_groups)]
     else:
         splits = np.sort(rng.choice(np.arange(1, n), size=n//grpsize-1, replace=False))

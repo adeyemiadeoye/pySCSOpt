@@ -2,7 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyscsopt",
-    version="0.1.0",
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     description="A Python library for self-concordant smooth optimization (Python port of SelfConcordantSmoothOptimization.jl)",
     author="Adeyemi Damilare Adeoye",
     author_email="",

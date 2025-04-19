@@ -15,6 +15,8 @@ def linesearch(x, d, f, grad_f, max_iter=50, tol=1e-6):
         alpha *= rho
     return alpha
 
+# compute inverse of the Barzilai-Borwein step size to estimate alpha in the paper
+## see https://en.wikipedia.org/wiki/Barzilai-Borwein_method
 def inv_BB_step(x, x_prev, gradx, gradx_prev):
     delta = x - x_prev
     gamma = gradx - gradx_prev
