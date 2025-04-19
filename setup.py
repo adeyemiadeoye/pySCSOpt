@@ -15,10 +15,10 @@ setup(
         "jax",
     ],
     python_requires=">=3.8",
-    license="MIT",
+    license="Apache-2.0",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
 )
