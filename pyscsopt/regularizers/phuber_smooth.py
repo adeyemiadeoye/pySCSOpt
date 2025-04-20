@@ -109,12 +109,10 @@ class PHuberSmootherIndBox:
         return huber_hess_indbox(x, self.mu, self.lb, self.ub)
 
 class PHuberSmootherGL:
-    def __init__(self, mu, model):
+    def __init__(self, mu, lam, P):
         self.mu = mu
         self.Mh = 2.0
         self.nu = 2.6
-        lam = model.lam
-        P = model.P
         inds = P.ind
         grpNUM = P.grpNUM
         self.lam1 = lam[0]

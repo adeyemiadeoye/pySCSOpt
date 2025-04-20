@@ -57,7 +57,7 @@ reg_name = "gl"
 # the following works fine (gradients are computed internally using jax)
 problem = scs.Problem(x0=x0, f=f, lam=lam, A=A, y=y, P=P, out_fn=out_fn)
 
-hmu = PHuberSmootherGL(mu, problem) # group lasso smoother takes also the problem as input
+hmu = PHuberSmootherGL(mu, lam, P) # group lasso smoother takes also lam and P as input
 
 method_pg = ProxGradient(use_prox=True, ss_type=1)
 sol_pg = scs.iterate(method_pg, problem, reg_name, hmu, verbose=1, max_epoch=100)

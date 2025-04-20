@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyscsopt"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Python library for self-concordant smooth optimization (Python port of SelfConcordantSmoothOptimization.jl)"
 authors = [
   { name = "Adeyemi Damilare Adeoye" }
