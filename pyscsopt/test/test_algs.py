@@ -15,8 +15,8 @@ def test_proximal_newton_score_regression(reg_name):
     A = jnp.array([[-0.560501, 0.0], [0.0, 1.85278], [-0.0192918, -0.827763], [0.128064, 0.110096], [0.0, -0.251176]])
     y = jnp.array([-1, -1, -1, 1, -1])
     x0 = jnp.array([0.5908446386657102, 0.7667970365022592])
-    lam = 1
-    mu = 1
+    lam = 1e-2
+    mu = 0.5
     def f_reg(A, y, x):
         return 1/5 * jnp.sum(jnp.log(1 + jnp.exp(-y * (A @ x))))
     model = Problem(x0=x0, f=f_reg, lam=lam, A=A, y=y)
@@ -31,10 +31,14 @@ def test_proximal_ggn_score_regression(reg_name):
     A = jnp.array([[-0.560501, 0.0], [0.0, 1.85278], [-0.0192918, -0.827763], [0.128064, 0.110096], [0.0, -0.251176]])
     y = jnp.array([-1, -1, -1, 1, -1])
     x0 = jnp.array([0.5908446386657102, 0.7667970365022592])
-    lam = 1
-    mu = 1.0
-    def f_reg(A, y, x):
-        return 1/5 * jnp.sum(jnp.log(1 + jnp.exp(-y * (A @ x))))
+    lam = 1e-2
+    mu = 0.5
+    def f_reg(A, y, x, yhat=None):
+        m = y.shape[0]
+        if yhat is None:
+            yhat = Mfunc(A, x)
+        logit_yhat = jnp.log(yhat / (1 - yhat))
+        return 1/m * jnp.sum(jnp.log(1 + jnp.exp(-y * logit_yhat)))
     def Mfunc(A, x):
         return 1 / (1 + jnp.exp(-A @ x))
     model = Problem(x0=x0, f=f_reg, lam=lam, A=A, y=y, out_fn=Mfunc)

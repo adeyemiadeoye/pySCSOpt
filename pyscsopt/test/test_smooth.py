@@ -25,12 +25,9 @@ def test_phuber_group_lasso():
             self.ind = [0, 1]
             self.grpNUM = 1
             self.tau = 0.9
-    class Model:
-        def __init__(self):
-            self.lam = [0.09, 0.91]
-            self.P = P()
-    model = Model()
-    hmu = PHuberSmootherGL(mu, model)
+    lam = [0.09, 0.91]
+    P = P()
+    hmu = PHuberSmootherGL(mu, lam, P)
     assert hmu.Mh == 2.0
     assert hmu.nu == 2.6
 
