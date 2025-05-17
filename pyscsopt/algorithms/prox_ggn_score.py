@@ -36,7 +36,7 @@ class ProxGGNSCORE:
         # the rest is zeros
         if qdm11 <= n:
             A = Q_aug @ (Jt.T @ H_inv) @ Jt
-            B = np.linalg.solve(np.eye(qdm11) + A, residual_vec)
+            B = np.linalg.solve(ncat*np.eye(qdm11) + A, residual_vec)
             d = H_inv @ Jt @ B
         else:
             JQJ = (Jt @ Q_aug @ Jt.T) + lam * np.diag(Hr_diag)
@@ -67,7 +67,7 @@ class ProxGGNSCORE:
             grad_f = lambda x_: model.grad_fx(As, ys, x_)
         else:
             grad_f = lambda x_: jnp.array(jax.grad(lambda z: model.f(As, ys, z))(x_))
-        Hdiag_inv = 1.0 / (Hr_diag + 1e-9)
+        Hdiag_inv = 1.0 / Hr_diag
         H_inv = np.diag(Hdiag_inv)
         d = self.ggn_score_step(J, Q, [gr], Hr_diag, H_inv, residual, lam)
         if self.ss_type == 1 and getattr(model, 'L', None) is not None:

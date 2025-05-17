@@ -13,6 +13,8 @@ This package is a Python port of most parts of the Julia package [SelfConcordant
 - Proximal Newton-SCORE
 - Smoothing and regularization (utility) functions
 
+NB: The Julia package remains the main implementation and is more feature-complete for now (with the exemption of the "limited-memory" QN).
+
 ## Installation
 
 Install with pip:
