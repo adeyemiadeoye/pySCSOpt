@@ -7,13 +7,10 @@
 
 This package is a Python port of most parts of the Julia package [SelfConcordantSmoothOptimization.jl](https://github.com/adeyemiadeoye/SelfConcordantSmoothOptimization.jl). It includes:
 
-- Proximal L-BFGS-SCORE (a limited-memory version of ProxQNSCORE of the Julia package)
-- Proximal GGN-SCORE
-- Proximal Gradient-SCORE
-- Proximal Newton-SCORE
+- `ProxLQNSCORE` a limited-memory version of ProxQNSCORE of the Julia package
+- `ProxGGNSCORE`
+- `ProxNSCORE`
 - Smoothing and regularization (utility) functions
-
-NB: The Julia package remains the main implementation and is more feature-complete for now (with the exemption of the "limited-memory" QN).
 
 ## Installation
 
@@ -25,7 +22,7 @@ pip install pyscsopt
 
 ## Usage
 
-See the [`examples/`](https://github.com/adeyemiadeoye/pySCSOpt/tree/main/examples) directory for a usage example. The main entry point is the `pyscsopt` package.
+See the [`examples/`](https://github.com/adeyemiadeoye/pySCSOpt/tree/main/examples) directory for a usage example.
 
 For more information on how to set up problems (especially choosing regularizers), see Julia's [SelfConcordantSmoothOptimization.jl](https://github.com/adeyemiadeoye/SelfConcordantSmoothOptimization.jl).
 

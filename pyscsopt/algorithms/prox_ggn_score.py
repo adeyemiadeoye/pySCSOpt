@@ -94,4 +94,4 @@ class ProxGGNSCORE:
             x_new = prox_ops.invoke_prox(model, reg_name, x + safe_alpha * d, Hdiag_inv, lam, step_size)
         else:
             x_new = x + safe_alpha * d
-        return x_new, np.linalg.norm(grad_f(x_new))
+        return x_new, np.linalg.norm(x_new - x)

@@ -20,14 +20,24 @@ class ProxNSCORE:
         gr = hmu.grad(Cmat, x)
         lam_gr = lam * gr
         Hr_diag = hmu.hess(Cmat, x)
-        lam_Hr = lam * np.diag(Hr_diag)
-        obj = lambda x_: model.f(As, ys, x_) + model.get_reg(x_, reg_name)
-        if hasattr(model, 'grad_fx') and model.grad_fx is not None and hasattr(model, 'hess_fx') and model.hess_fx is not None:
-            H = model.hess_fx(As, ys, x)
-            grad_f = lambda x_: model.grad_fx(As, ys, x_)
+        is_generic = (model.A is None or model.y is None)
+        if is_generic:
+            obj = lambda x_: model.f(x_)
+            if hasattr(model, 'grad_fx') and model.grad_fx is not None and hasattr(model, 'hess_fx') and model.hess_fx is not None:
+                H = model.hess_fx(x)
+                grad_f = lambda x_: model.grad_fx(x_)
+            else:
+                H = jnp.array(jax.hessian(obj)(x))
+                grad_f = lambda x_: jnp.array(jax.grad(obj)(x_))
         else:
-            H = jnp.array(jax.hessian(obj)(x))
-            grad_f = lambda x_: jnp.array(jax.grad(obj)(x_))
+            obj = lambda x_: model.f(As, ys, x_)
+            if hasattr(model, 'grad_fx') and model.grad_fx is not None and hasattr(model, 'hess_fx') and model.hess_fx is not None:
+                H = model.hess_fx(As, ys, x)
+                grad_f = lambda x_: model.grad_fx(As, ys, x_)
+            else:
+                H = jnp.array(jax.hessian(obj)(x))
+                grad_f = lambda x_: jnp.array(jax.grad(obj)(x_))
+        lam_Hr = lam * np.diag(Hr_diag)
         grad = grad_f(x) + lam_gr
         d = -np.linalg.solve(H + lam_Hr, grad)
         if self.ss_type == 1 and getattr(model, 'L', None) is not None:
@@ -56,4 +66,4 @@ class ProxNSCORE:
             x_new = prox_ops.invoke_prox(model, reg_name, x + safe_alpha * d, Hdiag_inv, lam, step_size)
         else:
             x_new = x + safe_alpha * d
-        return x_new, np.linalg.norm(grad_f(x_new))
+        return x_new, np.linalg.norm(x_new - x)

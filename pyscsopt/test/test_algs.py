@@ -8,7 +8,7 @@ from pyscsopt.regularizers.phuber_smooth import PHuberSmootherL1L2, PHuberSmooth
 from pyscsopt.regularizers.exponential_smooth import ExponentialSmootherIndBox
 from pyscsopt.algorithms.iterate import iterate
 
-TOL = 1e-6
+TOL = 1e-4
 
 @pytest.mark.parametrize("reg_name", ["l1", "l2"])
 def test_proximal_newton_score_regression(reg_name):

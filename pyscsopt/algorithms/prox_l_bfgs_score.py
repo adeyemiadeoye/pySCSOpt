@@ -98,4 +98,4 @@ class ProxLQNSCORE:
             self.s_list.append(s)
             self.y_list.append(y)
             self.H0 = (np.dot(y, s) / np.dot(y, y)) * np.eye(len(x))
-        return x_new, np.linalg.norm(grad_fxnew)
+        return x_new, np.linalg.norm(x_new - x)
