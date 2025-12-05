@@ -37,9 +37,9 @@ class ProxNSCORE:
             else:
                 H = jnp.array(jax.hessian(obj)(x))
                 grad_f = lambda x_: jnp.array(jax.grad(obj)(x_))
-        lam_Hr = lam * np.diag(Hr_diag)
+        lam_Hr = lam * jnp.diag(Hr_diag)
         grad = grad_f(x) + lam_gr
-        d = -np.linalg.solve(H + lam_Hr, grad)
+        d = -jnp.linalg.solve(H + lam_Hr, grad)
         if self.ss_type == 1 and getattr(model, 'L', None) is not None:
             step_size = min(1.0 / model.L, 1.0)
         elif self.ss_type == 1 and getattr(model, 'L', None) is None:
@@ -56,14 +56,14 @@ class ProxNSCORE:
         else:
             raise ValueError("Please, choose ss_type in [1, 2, 3].")
         Hdiag_inv = 1.0 / Hr_diag
-        H_inv = np.diag(Hdiag_inv)
+        H_inv = jnp.diag(Hdiag_inv)
         Mg = get_Mg(hmu.Mh, hmu.nu, hmu.mu, len(x))
-        d_norm = np.dot(lam_gr, np.dot(H_inv, lam_gr))
-        eta = np.sqrt(d_norm)
+        d_norm = jnp.dot(lam_gr, jnp.dot(H_inv, lam_gr))
+        eta = jnp.sqrt(d_norm)
         alpha = step_size / (1 + Mg * eta)
         safe_alpha = min(1, alpha)
         if self.use_prox:
             x_new = prox_ops.invoke_prox(model, reg_name, x + safe_alpha * d, Hdiag_inv, lam, step_size)
         else:
             x_new = x + safe_alpha * d
-        return x_new, np.linalg.norm(x_new - x)
+        return x_new, jnp.linalg.norm(x_new - x)

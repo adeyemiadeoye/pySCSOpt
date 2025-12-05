@@ -3,14 +3,20 @@ import pyscsopt as scs
 from pyscsopt.regularizers import PHuberSmootherL1L2
 from pyscsopt.algorithms import ProxLQNSCORE
 
+import jax
+jax.config.update('jax_platform_name', 'cpu')
+if not jax.config.jax_enable_x64:
+    jax.config.update("jax_enable_x64", True)
+
 import numpy as np
+import jax.numpy as jnp
 
 np.random.seed(1234)
 
 def f(x):
     return 100 * (x[1] - x[0]**2)**2 + (1 - x[0])**2
 
-x0 = np.array([0.0, 0.0])
+x0 = jnp.array([0.0, 0.0])
 lbda = 1e-8 # or set to zero to remove regularization entirely
 reg_name = "l1" # see other examples for other regularization names
 mu = 1e-2

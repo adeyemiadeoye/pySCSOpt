@@ -4,6 +4,11 @@ import pyscsopt as scs
 from pyscsopt.algorithms import ProxLQNSCORE, ProxNSCORE, ProxGGNSCORE
 from pyscsopt.regularizers import PHuberSmootherL1L2
 
+import jax
+jax.config.update('jax_platform_name', 'cpu')
+if not jax.config.jax_enable_x64:
+    jax.config.update("jax_enable_x64", True)
+
 np.random.seed(1234)
 
 # Data dimensions

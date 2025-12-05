@@ -20,7 +20,7 @@ class ProxLQNSCORE:
         n = x.shape[0]
         self.s_list = []
         self.y_list = []
-        self.H0 = np.eye(n)
+        self.H0 = jnp.eye(n)
         return self
 
     def two_loop_recursion(self, grad):
@@ -28,8 +28,8 @@ class ProxLQNSCORE:
         alpha = []
         rho = []
         for s, y in zip(reversed(self.s_list), reversed(self.y_list)):
-            rho_i = 1.0 / np.dot(y, s)
-            alpha_i = rho_i * np.dot(s, q)
+            rho_i = 1.0 / jnp.dot(y, s)
+            alpha_i = rho_i * jnp.dot(s, q)
             q = q - alpha_i * y
             alpha.append(alpha_i)
             rho.append(rho_i)
@@ -39,7 +39,7 @@ class ProxLQNSCORE:
             y = self.y_list[i]
             rho_i = rho[-(i+1)]
             alpha_i = alpha[-(i+1)]
-            beta = rho_i * np.dot(y, r)
+            beta = rho_i * jnp.dot(y, r)
             r = r + s * (alpha_i - beta)
         return -r
 
@@ -78,9 +78,9 @@ class ProxLQNSCORE:
             step_size = linesearch(x, d, obj, grad_f)
         else:
             raise ValueError("Please, choose ss_type in [1, 2, 3].")
-        Hdiag_inv = 1.0 / (Hr_diag + 1e-9)
+        Hdiag_inv = 1.0 / Hr_diag
         Mg = get_Mg(hmu.Mh, hmu.nu, hmu.mu, len(x))
-        eta = np.sqrt(np.dot(lam_gr, lam_gr * Hdiag_inv))
+        eta = jnp.sqrt(jnp.dot(lam_gr, lam_gr * Hdiag_inv))
         alpha = step_size / (1 + Mg * eta)
         safe_alpha = min(1, alpha)
         if self.use_prox:
@@ -91,11 +91,11 @@ class ProxLQNSCORE:
         grad_new = grad_fxnew + lam * hmu.grad(Cmat, x_new)
         s = x_new - x
         y = grad_new - grad
-        if np.dot(s, y) > 1e-10:
+        if jnp.dot(s, y) > 1e-10:
             if len(self.s_list) == self.m:
                 self.s_list.pop(0)
                 self.y_list.pop(0)
             self.s_list.append(s)
             self.y_list.append(y)
-            self.H0 = (np.dot(y, s) / np.dot(y, y)) * np.eye(len(x))
-        return x_new, np.linalg.norm(x_new - x)
+            self.H0 = (jnp.dot(y, s) / jnp.dot(y, y)) * jnp.eye(len(x))
+        return x_new, jnp.linalg.norm(x_new - x)

@@ -1,9 +1,14 @@
 import numpy as np
 import jax.numpy as jnp
 import pyscsopt as scs
-from pyscsopt.algorithms import ProxLQNSCORE, ProxGGNSCORE
+from pyscsopt.algorithms import ProxLQNSCORE, ProxGGNSCORE, ProxNSCORE
 from pyscsopt.regularizers import PHuberSmootherGL
 from pyscsopt.utils import make_group_lasso_problem
+
+import jax
+jax.config.update('jax_platform_name', 'cpu')
+if not jax.config.jax_enable_x64:
+    jax.config.update("jax_enable_x64", True)
 
 np.random.seed(1234)
 
@@ -47,7 +52,7 @@ def hess_fy(A, y, yhat):
 lam1 = 1e-8  # l1
 lam2 = 1   # group lasso
 lam = [lam1, lam2]
-mu = 1
+mu = 1e-2
 
 x0 = np.random.randn(n)
 reg_name = "gl"
@@ -65,6 +70,10 @@ sol_lqn = scs.iterate(method_lqn, problem, reg_name, hmu, verbose=1, max_epoch=1
 method_ggn = ProxGGNSCORE(use_prox=True, ss_type=1)
 sol_ggn = scs.iterate(method_ggn, problem, reg_name, hmu, verbose=1, max_epoch=100)
 
+hmu.mu = 1
+method_n = ProxNSCORE(use_prox=True, ss_type=1)
+sol_n = scs.iterate(method_n, problem, reg_name, hmu, verbose=1, max_epoch=100)
+
 # ### uncomment to print solutions
 # print("=" * 50)
 # print("True Solution (x_true):")
@@ -75,3 +84,6 @@ sol_ggn = scs.iterate(method_ggn, problem, reg_name, hmu, verbose=1, max_epoch=1
 # print("=" * 50)
 # print("ProxGGNSCORE (Sparse Group Lasso):")
 # print("Solution x:", sol_ggn.x)
+# print("=" * 50)
+# print("ProxNSCORE (Sparse Group Lasso):")
+# print("Solution x:", sol_n.x)

@@ -21,13 +21,13 @@ class ProxGGNSCORE:
         n = gr[0].shape[0] if isinstance(gr, list) else gr.shape[0]
         # stack gradients as columns
         if ncat > 1:
-            gr_mat = np.column_stack([np.asarray(g).reshape(-1) for g in gr])  # (n, ncat)
+            gr_mat = jnp.column_stack([jnp.asarray(g).reshape(-1) for g in gr])  # (n, ncat)
         else:
-            gr_mat = np.asarray(gr).reshape(n, 1)  # (n, 1)
+            gr_mat = jnp.asarray(gr).reshape(n, 1)  # (n, 1)
         # Jt: [J.T  λ*gr_mat]
-        Jt = np.hstack([J.T, lam * gr_mat])  # (n, m+ncat)
+        Jt = jnp.hstack([J.T, lam * gr_mat])  # (n, m+ncat)
         # residual: [residual ; ones(ncat)]
-        residual_vec = np.concatenate([residual, np.ones(ncat)])
+        residual_vec = jnp.concatenate([residual, jnp.ones(ncat)])
         # Q_aug: block matrix
         qdm1 = Q.shape[0]
         qdm11 = qdm1 + ncat
@@ -36,14 +36,14 @@ class ProxGGNSCORE:
         # the rest is zeros
         if qdm11 <= n:
             A = Q_aug @ (Jt.T @ H_inv) @ Jt
-            B = np.linalg.solve(ncat*np.eye(qdm11) + A, residual_vec)
+            B = jnp.linalg.solve(ncat*jnp.eye(qdm11) + A, residual_vec)
             d = H_inv @ Jt @ B
         else:
-            JQJ = (Jt @ Q_aug @ Jt.T) + lam * np.diag(Hr_diag)
+            JQJ = (Jt @ Q_aug @ Jt.T) + lam * jnp.diag(Hr_diag)
             Je = Jt @ residual_vec
-            JQJ_qr = np.linalg.qr(JQJ)
+            JQJ_qr = jnp.linalg.qr(JQJ)
             JQJ_q, JQJ_r = JQJ_qr[0], JQJ_qr[1]
-            d = np.linalg.solve(JQJ_r, JQJ_q.T @ Je)
+            d = jnp.linalg.solve(JQJ_r, JQJ_q.T @ Je)
         return -d
 
     def step(self, model, reg_name, hmu, As, x, x_prev, ys, Cmat, iter):
@@ -68,7 +68,7 @@ class ProxGGNSCORE:
         else:
             grad_f = lambda x_: jnp.array(jax.grad(lambda z: model.f(As, ys, z))(x_))
         Hdiag_inv = 1.0 / Hr_diag
-        H_inv = np.diag(Hdiag_inv)
+        H_inv = jnp.diag(Hdiag_inv)
         d = self.ggn_score_step(J, Q, [gr], Hr_diag, H_inv, residual, lam)
         if self.ss_type == 1 and getattr(model, 'L', None) is not None:
             step_size = min(1.0 / model.L, 1.0)
@@ -87,11 +87,11 @@ class ProxGGNSCORE:
         else:
             raise ValueError("Please, choose ss_type in [1, 2, 3].")
         Mg = get_Mg(hmu.Mh, hmu.nu, hmu.mu, len(x))
-        eta = np.sqrt(np.dot(lam_gr, H_inv @ lam_gr))
+        eta = jnp.sqrt(jnp.dot(lam_gr, H_inv @ lam_gr))
         alpha = step_size / (1 + Mg * eta)
         safe_alpha = min(1, alpha)
         if self.use_prox:
             x_new = prox_ops.invoke_prox(model, reg_name, x + safe_alpha * d, Hdiag_inv, lam, step_size)
         else:
             x_new = x + safe_alpha * d
-        return x_new, np.linalg.norm(x_new - x)
+        return x_new, jnp.linalg.norm(x_new - x)
