@@ -46,7 +46,7 @@ def grad_fy(A, y, yhat):
 
 def hess_fy(A, y, yhat):
     m = y.shape[0]
-    return np.eye(len(yhat))/m
+    return jnp.eye(len(yhat))/m
 
 # regularization parameters
 lam1 = 1e-8  # l1
@@ -75,9 +75,6 @@ method_n = ProxNSCORE(use_prox=True, ss_type=1)
 sol_n = scs.iterate(method_n, problem, reg_name, hmu, verbose=1, max_epoch=100)
 
 # ### uncomment to print solutions
-# print("=" * 50)
-# print("True Solution (x_true):")
-# print("x_true:", x_true)
 # print("=" * 50)
 # print("ProxLQNSCORE (Sparse Group Lasso):")
 # print("Solution x:", sol_lqn.x)
